@@ -2,7 +2,7 @@
 
 #include "core/memory/Hooks.hpp"
 #include <bedrocktools/memory/Signatures.hpp>
-#include <bedrocktools/sdk/ClientInstance.hpp>
+#include <bedrocktools/sdk/client/ClientInstance.hpp>
 #include <bedrocktools/sdk/Offsets.hpp>
 #include <bedrocktools/sdk/render/LevelRenderer.hpp>
 #include <bedrocktools/sdk/render/LevelRendererPlayer.hpp>
