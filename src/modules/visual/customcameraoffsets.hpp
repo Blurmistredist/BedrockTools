@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Module.hpp"
+#include <bedrocktools/sdk/Types.hpp>
 
 class CustomCameraOffsetsModule : public Module {
 public:
