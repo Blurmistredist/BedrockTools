@@ -28,6 +28,7 @@ public:
 private:
     bool m_patched = false;
     bool m_thirdPerson = false;
+
     void* m_patchTarget = nullptr;
     void* m_perspectiveTarget = nullptr;
 
