@@ -14,12 +14,17 @@ static CustomCameraOffsetsModule* g_cameraMod = nullptr;
 static void (*_renderLevel_orig)(void* _this, void* screenContext, void* a3) = nullptr;
 static int (*_getPerspective_orig)(void* _this) = nullptr;
 
-static bedrocktools::sdk::Vec3 lerpVec(const bedrocktools::sdk::Vec3& a, const bedrocktools::sdk::Vec3& b, float t) {
+static bedrocktools::sdk::Vec3 lerpVec(
+    const bedrocktools::sdk::Vec3& a,
+    const bedrocktools::sdk::Vec3& b,
+    float t) {
+
     t = std::clamp(t, 0.0f, 1.0f);
+
     return {
-        std::lerp(a.x, b.x, t),
-        std::lerp(a.y, b.y, t),
-        std::lerp(a.z, b.z, t),
+        a.x + (b.x - a.x) * t,
+        a.y + (b.y - a.y) * t,
+        a.z + (b.z - a.z) * t
     };
 }
 
