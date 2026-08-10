@@ -2,6 +2,9 @@
 #include "visual/fullbright.hpp"
 #include "visual/motionblur.hpp"
 #include "visual/fpsunlocker.hpp"
+#include "visual/fpsgraph.hpp"
+#include "visual/chunkfade.hpp"
+#include "visual/customcameraoffsets.hpp"
 #include "visual/fogcolor.hpp"
 #include "visual/glintcolor.hpp"
 #include "visual/tnttimer.hpp"
@@ -110,7 +113,10 @@ void registerAllModules() {
     registry.emplace<AutoGG>();
     registry.emplace<AutoReQ>();
     registry.emplace<FPSUnlockerModule>();
+    registry.emplace<FPSGraphModule>();
     registry.emplace<LightOverlayModule>();
+    registry.emplace<ChunkFadeModule>();
+    registry.emplace<CustomCameraOffsetsModule>();
     registry.emplace<ShulkerPreviewModule>();
     registry.emplace<ConnectedGlassModule>();
 }
