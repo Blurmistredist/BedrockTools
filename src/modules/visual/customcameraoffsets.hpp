@@ -30,6 +30,29 @@ private:
     bool m_thirdPerson = false;
     void* m_patchTarget = nullptr;
     void* m_perspectiveTarget = nullptr;
+
     bedrocktools::sdk::Vec3 m_lastCamera{0.0f, 0.0f, 0.0f};
     bool m_hasLastCamera = false;
+
+public:
+    void setThirdPersonState(bool value) {
+        m_thirdPerson = value;
+    }
+
+    bool isThirdPersonActive() const {
+        return m_thirdPerson;
+    }
+
+    bool hasLastCamera() const {
+        return m_hasLastCamera;
+    }
+
+    void setLastCamera(const bedrocktools::sdk::Vec3& camera) {
+        m_lastCamera = camera;
+        m_hasLastCamera = true;
+    }
+
+    const bedrocktools::sdk::Vec3& lastCamera() const {
+        return m_lastCamera;
+    }
 };
