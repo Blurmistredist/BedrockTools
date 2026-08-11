@@ -1,10 +1,13 @@
 #pragma once
 
 #include "../Module.hpp"
+
+#include <bedrocktools/events/EventBus.hpp>
 #include <bedrocktools/sdk/Types.hpp>
+#include <bedrocktools/sdk/client/ClientInstance.hpp>
 #include <nlohmann/json.hpp>
 
-class CustomCameraOffsetsModule : public Module {
+class CustomCameraOffsetsModule final : public Module {
 public:
     CustomCameraOffsetsModule();
     ~CustomCameraOffsetsModule() override;
@@ -18,7 +21,6 @@ public:
 
     bool isThirdPerson() const;
 
-    // Camera configuration
     float m_offsetX = 0.0f;
     float m_offsetY = 1.55f;
     float m_offsetZ = -4.0f;
@@ -31,42 +33,25 @@ public:
     bool m_onlyThirdPerson = true;
     bool m_useLookDirection = true;
 
-    // Accessors used by the camera hooks.
-    void setThirdPersonState(bool value) {
-        m_thirdPerson = value;
-    }
-
     bool isThirdPersonActive() const {
         return m_thirdPerson;
     }
 
-    bool hasLastCamera() const {
-        return m_hasLastCamera;
-    }
-
-    void setLastCamera(
-        const bedrocktools::sdk::Vec3& camera) {
-
-        m_lastCamera = camera;
-        m_hasLastCamera = true;
-    }
-
-    const bedrocktools::sdk::Vec3& lastCamera() const {
-        return m_lastCamera;
-    }
-
 private:
-    bool m_patched = false;
     bool m_thirdPerson = false;
-
-    void* m_patchTarget = nullptr;
-    void* m_perspectiveTarget = nullptr;
-
-    bedrocktools::sdk::Vec3 m_lastCamera{
-        0.0f,
-        0.0f,
-        0.0f
-    };
-
     bool m_hasLastCamera = false;
+
+    bedrocktools::sdk::Vec3 m_lastCamera{0.0f, 0.0f, 0.0f};
+
+    bedrocktools::events::Subscription m_clientUpdateSubscription = 0;
+
+    void* m_getBlockTarget = nullptr;
+    void* m_isSolidBlockingBlockTarget = nullptr;
+
+    void applyCamera(bedrocktools::sdk::ClientInstance* client);
+
+    bedrocktools::sdk::Vec3 collisionSafeCamera(
+        bedrocktools::sdk::BlockSource* region,
+        const bedrocktools::sdk::Vec3& origin,
+        const bedrocktools::sdk::Vec3& target) const;
 };
