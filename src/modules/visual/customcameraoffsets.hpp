@@ -3,6 +3,7 @@
 #include "../Module.hpp"
 
 #include <bedrocktools/sdk/Types.hpp>
+#include <bedrocktools/sdk/world/BlockSource.hpp>
 #include <nlohmann/json.hpp>
 
 class CustomCameraOffsetsModule final : public Module {
