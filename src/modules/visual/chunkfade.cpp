@@ -24,7 +24,7 @@ static int _getPerspective_hook(void* _this) {
         result = _getPerspective_orig(_this);
     }
     if (g_chunkFadeMod) {
-        g_chunkFadeMod->m_thirdPerson = (result != 0);
+        g_chunkFadeMod->setThirdPersonState(result != 0);
     }
     return result;
 }
@@ -56,7 +56,7 @@ static void _renderLevel_hook(void* _this, void* screenContext, void* a3) {
             const float fadeEnd = std::max(fadeStart + 1.0f, g_chunkFadeMod->m_fadeEnd);
             const float fadeDensity = std::clamp(g_chunkFadeMod->m_fadeOpacity, 0.0f, 1.0f);
 
-            const bool shouldApply = !g_chunkFadeMod->m_onlyThirdPerson || g_chunkFadeMod->m_thirdPerson;
+            const bool shouldApply = !g_chunkFadeMod->m_onlyThirdPerson || g_chunkFadeMod->isThirdPersonActive();
             if (shouldApply) {
                 *fog.start = fadeStart;
                 *fog.end = fadeEnd;

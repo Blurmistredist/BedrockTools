@@ -23,6 +23,14 @@ public:
 
     bool isThirdPerson() const;
 
+    void setThirdPersonState(bool value) {
+        m_thirdPerson = value;
+    }
+
+    bool isThirdPersonActive() const {
+        return m_thirdPerson;
+    }
+
 private:
     bool m_patched = false;
     bool m_thirdPerson = false;
