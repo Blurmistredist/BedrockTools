@@ -16,10 +16,15 @@ public:
     float m_fadeStart = 64.0f;
     float m_fadeEnd = 160.0f;
     float m_fadeOpacity = 0.20f;
+
+    // Kept for config compatibility with older versions.
+    // Chunk Fade no longer writes these values into the renderer,
+    // because doing so creates a visible sky/fog horizon seam.
     float m_fadeColorR = 0.80f;
     float m_fadeColorG = 0.84f;
     float m_fadeColorB = 0.92f;
-    bool  m_onlyThirdPerson = false;
+
+    bool m_onlyThirdPerson = false;
 
     bool isThirdPerson() const;
 
@@ -34,6 +39,7 @@ public:
 private:
     bool m_patched = false;
     bool m_thirdPerson = false;
+
     void* m_patchTarget = nullptr;
     void* m_perspectiveTarget = nullptr;
 };

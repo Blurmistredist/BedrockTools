@@ -29,13 +29,25 @@ public:
     bool  m_showStats = true;
     bool  m_showGrid = true;
 
+    // When enabled, only the numerical statistics are drawn.
+    bool  m_numbersOnly = false;
+
+    // Cosmetic easter egg: replaces displayed FPS values with a
+    // continuously moving 2000-3000 FPS value. It never changes
+    // the actual game frame rate or timing.
+    bool  m_superPerformanceModeThing = false;
+
 private:
     using Clock = std::chrono::steady_clock;
 
     Clock::time_point m_lastFrame{};
+    Clock::time_point m_fakeStart{};
     bool m_hasLastFrame = false;
     std::vector<float> m_history;
     float m_currentFps = 0.0f;
     float m_averageFps = 0.0f;
     float m_peakFps = 0.0f;
+
+    float getDisplayedFps(float realFps) const;
+    void rebuildStatistics();
 };
