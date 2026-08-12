@@ -145,6 +145,10 @@ void registerModulesWithLauncher() {
                     if (kLower.find("cps") != std::string::npos) {
                         minVal = 1;
                         maxVal = 30;
+                    } else if (kLower.find("distance") != std::string::npos ||
+                               kLower.find("lod") != std::string::npos) {
+                        minVal = 1;
+                        maxVal = 512;
                     } else if (kLower.find("time") != std::string::npos) {
                         maxVal = 24000;
                     }
@@ -177,6 +181,10 @@ void registerModulesWithLauncher() {
                            kLower.find("posx") != std::string::npos ||
                            kLower.find("posy") != std::string::npos) {
                     maxVal = 2000.0f;
+                } else if (kLower.find("lod") != std::string::npos ||
+                           kLower.find("distance") != std::string::npos) {
+                    minVal = 0.0f;
+                    maxVal = 512.0f;
                 } else if (kLower.find("range") != std::string::npos) {
                     maxVal = 180.0f;
                 } else if (kLower.find("fov") != std::string::npos) {
