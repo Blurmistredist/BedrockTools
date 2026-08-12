@@ -32,10 +32,13 @@
 #include "visual/lightoverlay.hpp"
 #include "visual/shulkerpreview.hpp"
 #include "visual/connectedglass.hpp"
-#include "visual/distantterrain.hpp"
 #include "player/skinstealer.hpp"
 #include "player/autogg.hpp"
 #include "player/autoreq.hpp"
+#include "visual/fpsgraph.hpp"
+#include "visual/chunkfade.hpp"
+#include "visual/customcameraoffsets.hpp"
+#include "visual/distantterrain.hpp"
 
 ModuleRegistry& ModuleRegistry::get() {
     static ModuleRegistry registry;
@@ -84,6 +87,7 @@ void registerAllModules() {
     registry.emplace<GlintColorModule>();
     registry.emplace<TntTimerModule>();
     registry.emplace<NoFogModule>();
+    registry.emplace<ChunkFadeModule>();
     registry.emplace<PingCounterModule>();
     registry.emplace<ReachCounterModule>();
     registry.emplace<ComboDisplay>();
@@ -106,11 +110,13 @@ void registerAllModules() {
     registry.emplace<ChunkBorderModule>();
     registry.emplace<HitboxModule>();
     registry.emplace<ZoomModule>();
+    registry.emplace<CustomCameraOffsetsModule>();
     registry.emplace<BreadcrumbsModule>();
     registry.emplace<SkinStealerModule>();
     registry.emplace<AutoGG>();
     registry.emplace<AutoReQ>();
     registry.emplace<FPSUnlockerModule>();
+    registry.emplace<FPSGraphModule>();
     registry.emplace<LightOverlayModule>();
     registry.emplace<ShulkerPreviewModule>();
     registry.emplace<ConnectedGlassModule>();
