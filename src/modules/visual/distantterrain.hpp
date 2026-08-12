@@ -2,6 +2,7 @@
 
 #include "../Module.hpp"
 #include <bedrocktools/sdk/Types.hpp>
+#include <bedrocktools/sdk/world/BlockSource.hpp>
 #include <bedrocktools/events/EventBus.hpp>
 #include <nlohmann/json.hpp>
 #include <cstdint>
