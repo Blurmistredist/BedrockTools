@@ -7,6 +7,9 @@
 
 class FPSGraphModule final : public Module {
 public:
+    bool isHudModule = true;
+    float hudPosX = 60.0f;
+    float hudPosY = 60.0f;
     FPSGraphModule();
     ~FPSGraphModule() override;
 
@@ -51,6 +54,7 @@ private:
     std::deque<float> m_tpsHistory;
 
     bool m_haveFrameTime = false;
+    double m_frameAccumulator = 0.0;
     std::chrono::steady_clock::time_point m_lastFrame{};
     std::chrono::steady_clock::time_point m_lastTick{};
 
