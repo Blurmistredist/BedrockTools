@@ -1,53 +1,64 @@
 #pragma once
 
 #include "../Module.hpp"
+#include <bedrocktools/events/EventBus.hpp>
 #include <chrono>
-#include <vector>
+#include <deque>
 
-class FPSGraphModule : public Module {
+class FPSGraphModule final : public Module {
 public:
     FPSGraphModule();
     ~FPSGraphModule() override;
 
+    void onInit() override;
     void onEnable() override;
     void onDisable() override;
     void onFrame() override;
     void loadConfig(const nlohmann::json& j) override;
     void saveConfig(nlohmann::json& j) override;
 
-    float hudPosX = 24.0f;
-    float hudPosY = 24.0f;
-    bool isHudModule = true;
-
-    float m_width = 220.0f;
-    float m_height = 88.0f;
-    float m_size = 14.0f;
-    int   m_historySize = 120;
-    float m_scaleFps = 144.0f;
-    bool  m_background = true;
-    float m_backgroundOpacity = 0.55f;
-    bool  m_showStats = true;
-    bool  m_showGrid = true;
-
-    // When enabled, only the numerical statistics are drawn.
-    bool  m_numbersOnly = false;
-
-    // Cosmetic easter egg: replaces displayed FPS values with a
-    // continuously moving 2000-3000 FPS value. It never changes
-    // the actual game frame rate or timing.
-    bool  m_superPerformanceModeThing = false;
+    void setPingFromHook(int ping);
 
 private:
-    using Clock = std::chrono::steady_clock;
+    float m_scale = 1.0f;
+    float m_posX = 60.0f;
+    float m_posY = 60.0f;
+    float m_historySeconds = 4.0f;
+    std::string m_displayMode = "Graph";
 
-    Clock::time_point m_lastFrame{};
-    Clock::time_point m_fakeStart{};
-    bool m_hasLastFrame = false;
-    std::vector<float> m_history;
-    float m_currentFps = 0.0f;
+    bool m_showFps = true;
+    bool m_showAverage = true;
+    bool m_showJitter = true;
+    bool m_showRam = true;
+    bool m_showPing = true;
+    bool m_showOnePercentLow = true;
+    bool m_showMspt = true;
+    bool m_showTps = true;
+    bool m_superPerformanceModeThing = false;
+
+    float m_fps = 0.0f;
     float m_averageFps = 0.0f;
-    float m_peakFps = 0.0f;
+    float m_jitterMs = 0.0f;
+    float m_ramMb = 0.0f;
+    int m_pingMs = 0;
+    float m_onePercentLow = 0.0f;
+    float m_mspt = 0.0f;
+    float m_tps = 0.0f;
 
-    float getDisplayedFps(float realFps) const;
-    void rebuildStatistics();
+    std::deque<float> m_fpsHistory;
+    std::deque<float> m_frameTimeHistory;
+    std::deque<float> m_msptHistory;
+    std::deque<float> m_tpsHistory;
+
+    bool m_haveFrameTime = false;
+    std::chrono::steady_clock::time_point m_lastFrame{};
+    std::chrono::steady_clock::time_point m_lastTick{};
+
+    bedrocktools::events::Subscription m_tickSubscription = 0;
+    void* m_pingPatchTarget = nullptr;
+    bool m_pingHooked = false;
+
+    void updateFrameMetrics(double dt);
+    void drawGraph();
+    void drawNumbersOnly();
 };

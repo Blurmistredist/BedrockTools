@@ -2,7 +2,7 @@
 
 #include "../Module.hpp"
 
-class ChunkFadeModule : public Module {
+class ChunkFadeModule final : public Module {
 public:
     ChunkFadeModule();
     ~ChunkFadeModule() override;
@@ -13,33 +13,18 @@ public:
     void loadConfig(const nlohmann::json& j) override;
     void saveConfig(nlohmann::json& j) override;
 
-    float m_fadeStart = 64.0f;
-    float m_fadeEnd = 160.0f;
-    float m_fadeOpacity = 0.20f;
-
-    // Kept for config compatibility with older versions.
-    // Chunk Fade no longer writes these values into the renderer,
-    // because doing so creates a visible sky/fog horizon seam.
-    float m_fadeColorR = 0.80f;
-    float m_fadeColorG = 0.84f;
-    float m_fadeColorB = 0.92f;
-
-    bool m_onlyThirdPerson = false;
-
-    bool isThirdPerson() const;
-
-    void setThirdPersonState(bool value) {
-        m_thirdPerson = value;
-    }
-
-    bool isThirdPersonActive() const {
-        return m_thirdPerson;
-    }
+    float fadeStart() const { return m_fadeStart; }
+    float fadeEnd() const { return m_fadeEnd; }
+    float fadeOpacity() const { return m_fadeOpacity; }
+    bool onlyThirdPerson() const { return m_onlyThirdPerson; }
 
 private:
-    bool m_patched = false;
-    bool m_thirdPerson = false;
-
     void* m_patchTarget = nullptr;
-    void* m_perspectiveTarget = nullptr;
+    bool m_hooked = false;
+
+    // Offsets are relative to the fog values produced by Minecraft.
+    float m_fadeStart = 0.0f;
+    float m_fadeEnd = 100.0f;
+    float m_fadeOpacity = 1.0f;
+    bool m_onlyThirdPerson = false;
 };
