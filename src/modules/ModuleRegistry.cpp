@@ -11,6 +11,10 @@
 #include "hud/breakindicator.hpp"
 #include "hud/playercoords.hpp"
 #include "hud/compass.hpp"
+#include "hud/worldclock.hpp"
+#include "hud/gameplaytime.hpp"
+#include "hud/locatorheads.hpp"
+#include "visual/videosettings.hpp"
 #include "player/timechanger.hpp"
 #include "player/weatherchanger.hpp"
 #include "player/nick.hpp"
@@ -24,6 +28,7 @@
 #include "hud/keystrokes.hpp"
 #include "visual/thirdpersonnametag.hpp"
 #include "hud/tablist.hpp"
+#include "hud/paperdoll.hpp"
 #include "hud/combocounter.hpp"
 #include "visual/chunkborder.hpp"
 #include "visual/hitbox.hpp"
@@ -37,7 +42,6 @@
 #include "player/autoreq.hpp"
 #include "visual/fpsgraph.hpp"
 #include "visual/chunkfade.hpp"
-#include "visual/customcameraoffsets.hpp"
 #include "visual/distantterrain.hpp"
 
 ModuleRegistry& ModuleRegistry::get() {
@@ -94,6 +98,9 @@ void registerAllModules() {
     registry.emplace<BreakIndicatorModule>();
     registry.emplace<PlayerCoordsModule>();
     registry.emplace<CompassModule>();
+    registry.emplace<WorldClockModule>();
+    registry.emplace<GameplayTimeModule>();
+    registry.emplace<LocatorHeadsModule>();
     registry.emplace<TimeChangerModule>();
     registry.emplace<WeatherChangerModule>();
     registry.emplace<NickModule>();
@@ -107,10 +114,10 @@ void registerAllModules() {
     registry.emplace<KeystrokesModule>();
     registry.emplace<ThirdPersonNametagModule>();
     registry.emplace<TablistModule>();
+    registry.emplace<PaperDollModule>();
     registry.emplace<ChunkBorderModule>();
     registry.emplace<HitboxModule>();
     registry.emplace<ZoomModule>();
-    registry.emplace<CustomCameraOffsetsModule>();
     registry.emplace<BreadcrumbsModule>();
     registry.emplace<SkinStealerModule>();
     registry.emplace<AutoGG>();
@@ -120,5 +127,6 @@ void registerAllModules() {
     registry.emplace<LightOverlayModule>();
     registry.emplace<ShulkerPreviewModule>();
     registry.emplace<ConnectedGlassModule>();
+    registry.emplace<VideoSettingsModule>();
     registry.emplace<DistantTerrainModule>();
 }
