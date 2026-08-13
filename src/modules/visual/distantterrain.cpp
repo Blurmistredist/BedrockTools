@@ -336,9 +336,31 @@ void DistantTerrainModule::renderLods(void* levelRenderer, void* screenContext) 
     auto* lrp = reinterpret_cast<bedrocktools::sdk::LevelRenderer*>(levelRenderer)->playerRenderer();
     if (!lrp) return;
     const auto camera = lrp->cameraPosition();
-    const auto* tessPtr = reinterpret_cast<std::uintptr_t*>(reinterpret_cast<std::uintptr_t>(screenContext) + bedrocktools::sdk::offsets::ScreenContext::mTessellator);
+
+    const auto* tessPtr = reinterpret_cast<std::uintptr_t*>(
+        reinterpret_cast<std::uintptr_t>(screenContext) +
+        bedrocktools::sdk::offsets::ScreenContext::mTessellator);
     if (!tessPtr || !*tessPtr) return;
     void* tess = reinterpret_cast<void*>(*tessPtr);
+
+    // Use the same material fallback used by BedrockTools' existing
+    // world-overlay renderers. Also set the ScreenContext color holder;
+    // without it, the selection material can inherit a zero/old color and
+    // make the LOD quads effectively invisible.
+    void* material = s_material
+        ? reinterpret_cast<void*>(s_material)
+        : lrp->selectionOverlayMaterial();
+    if (!material) return;
+
+    const auto colorHolderPtr = *reinterpret_cast<std::uintptr_t*>(
+        reinterpret_cast<std::uintptr_t>(screenContext) +
+        bedrocktools::sdk::offsets::ScreenContext::mColorHolder);
+    if (!colorHolderPtr) return;
+
+    auto* colorHolder = reinterpret_cast<float*>(colorHolderPtr);
+    const float savedColor[4] = {
+        colorHolder[0], colorHolder[1], colorHolder[2], colorHolder[3]
+    };
 
     const int radii[3] = {static_cast<int>(m_closeDistance), static_cast<int>(m_farDistance), static_cast<int>(m_fartherDistance)};
     const int resolutions[3] = {std::max(1, m_closeResolution), std::max(1, m_farResolution), std::max(1, m_fartherResolution)};
@@ -349,6 +371,13 @@ void DistantTerrainModule::renderLods(void* levelRenderer, void* screenContext) 
     char pad[0x58]{};
     for (int lod = 0; lod < 3; ++lod) {
         const int resolution = resolutions[lod];
+        // BedrockTools' tessellator uses the ScreenContext color holder
+        // as an additional modulation path for these immediate meshes.
+        colorHolder[0] = 1.0f;
+        colorHolder[1] = 1.0f;
+        colorHolder[2] = 1.0f;
+        colorHolder[3] = 1.0f;
+
         s_begin(tess, nullptr, 1, static_cast<int>(m_cells.size() * 8), 0);
         for (const auto& [key, cell] : m_cells) {
             if (key.lod != lod || !cell.valid) continue;
@@ -375,8 +404,14 @@ void DistantTerrainModule::renderLods(void* levelRenderer, void* screenContext) 
                      x0, cell.height + m_surfaceOffset, z1,
                      camera.x, camera.y, camera.z);
         }
-        s_renderMesh(screenContext, tess, reinterpret_cast<void*>(s_material), pad);
+        s_renderMesh(screenContext, tess, material, pad);
     }
+
+    colorHolder[0] = savedColor[0];
+    colorHolder[1] = savedColor[1];
+    colorHolder[2] = savedColor[2];
+    colorHolder[3] = savedColor[3];
+
     (void)radii;
 }
 
