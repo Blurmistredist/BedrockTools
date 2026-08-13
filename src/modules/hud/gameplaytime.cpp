@@ -1,5 +1,5 @@
 #include "gameplaytime.hpp"
-#include "pl/runtime/ModMenuBridge.h"
+#include "../ModuleRegistry.hpp"
 
 #include <bedrocktools/events/EventBus.hpp>
 #include <bedrocktools/events/Events.hpp>
