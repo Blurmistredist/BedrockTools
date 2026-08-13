@@ -13,6 +13,7 @@
 
 namespace {
 GameplayTimeModule* g_gameplayTime = nullptr;
+GameplayTimeModule* g_gameplayTime = nullptr;
 
 using ClientInstanceGetLocalPlayer_t = void* (*)(void*);
 
@@ -154,7 +155,8 @@ std::string GameplayTimeModule::formatDuration(
         << ':'
         << std::setw(2) << minutes;
 
-    if (showSeconds)
+    const bool showSecondsValue = g_gameplayTime ? g_gameplayTime->showSeconds : true;
+    if (showSecondsValue)
         out << ':' << std::setw(2) << seconds;
 
     return out.str();
