@@ -22,6 +22,7 @@ public:
 
     float hudPosX = 40.f;
     float hudPosY = 80.f;
+    bool isHudModule = true;
     float scale = 1.5f;
     bool background = false;
     float backgroundOpacity = 0.35f;

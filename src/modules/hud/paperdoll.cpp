@@ -1,4 +1,5 @@
 #include "paperdoll.hpp"
+#include "modules/ModuleRegistry.hpp"
 
 #include <algorithm>
 #include <cstring>
@@ -144,7 +145,6 @@ static bool buildDoll(void* actor, std::array<uint8_t, 64*96*4>& out) {
 PaperDollModule::PaperDollModule()
     : Module("Paper Doll", "Displays your player skin as a compact HUD paper doll.") {
     g_paperDoll = this;
-    isHudModule = true;
     hudPosX = 40.f;
     hudPosY = 80.f;
 }
