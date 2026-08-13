@@ -13,7 +13,6 @@
 
 namespace {
 GameplayTimeModule* g_gameplayTime = nullptr;
-GameplayTimeModule* g_gameplayTime = nullptr;
 
 using ClientInstanceGetLocalPlayer_t = void* (*)(void*);
 
