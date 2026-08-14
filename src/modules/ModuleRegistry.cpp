@@ -28,7 +28,6 @@
 #include "hud/keystrokes.hpp"
 #include "visual/thirdpersonnametag.hpp"
 #include "hud/tablist.hpp"
-#include "hud/paperdoll.hpp"
 #include "hud/combocounter.hpp"
 #include "visual/chunkborder.hpp"
 #include "visual/hitbox.hpp"
@@ -42,7 +41,6 @@
 #include "player/autoreq.hpp"
 #include "visual/fpsgraph.hpp"
 #include "visual/chunkfade.hpp"
-#include "visual/distantterrain.hpp"
 
 ModuleRegistry& ModuleRegistry::get() {
     static ModuleRegistry registry;
@@ -114,7 +112,6 @@ void registerAllModules() {
     registry.emplace<KeystrokesModule>();
     registry.emplace<ThirdPersonNametagModule>();
     registry.emplace<TablistModule>();
-    registry.emplace<PaperDollModule>();
     registry.emplace<ChunkBorderModule>();
     registry.emplace<HitboxModule>();
     registry.emplace<ZoomModule>();
@@ -128,5 +125,4 @@ void registerAllModules() {
     registry.emplace<ShulkerPreviewModule>();
     registry.emplace<ConnectedGlassModule>();
     registry.emplace<VideoSettingsModule>();
-    registry.emplace<DistantTerrainModule>();
 }
