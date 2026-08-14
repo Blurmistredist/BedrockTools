@@ -10,11 +10,16 @@ public:
     void onInit() override;
     void onEnable() override;
     void onDisable() override;
+    void onFrame() override;
 
     void loadConfig(const nlohmann::json& j) override;
     void saveConfig(nlohmann::json& j) override;
 
 public:
+    bool isHudModule = true;
+    float hudPosX = 80.f;
+    float hudPosY = 80.f;
+    bool m_showPanel = true;
     bool m_worldRenderingTest = false;
 
 private:
