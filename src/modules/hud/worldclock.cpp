@@ -35,8 +35,10 @@ std::string formatWorldClock(int ticks) {
     const int hour = (totalMinutes / 60) % 24;
     const int minute = totalMinutes % 60;
 
-    char buffer[6]{};
-    std::snprintf(buffer, sizeof(buffer), "%02d:%02d", hour, minute);
+    char buffer[16]{};
+    const bool pm = hour >= 12;
+    const int displayHour = (hour % 12 == 0) ? 12 : (hour % 12);
+    std::snprintf(buffer, sizeof(buffer), "%02d:%02d %s", displayHour, minute, pm ? "PM" : "AM");
     return buffer;
 }
 

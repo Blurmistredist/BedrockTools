@@ -28,7 +28,7 @@ public:
     float textSize = 40.0f;
     bool background = true;
     float backgroundOpacity = 0.55f;
-    bool showLabel = true;
+    bool showLabel = false;
     bool showSeconds = true;
 
 private:

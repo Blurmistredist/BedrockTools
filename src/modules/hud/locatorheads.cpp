@@ -159,6 +159,16 @@ static float distance3(const bedrocktools::sdk::Vec3& a, const bedrocktools::sdk
     return std::sqrt(x * x + y * y + z * z);
 }
 
+static bool isCrouching(const bedrocktools::sdk::Actor* actor) {
+    if (!actor) return false;
+    const auto box = actor->bounds();
+    const float h = box.max.y - box.min.y;
+    // Standing players are about 1.8 blocks tall; crouching is visibly shorter.
+    // Keep the test narrow so swimming/other poses are not automatically treated
+    // as crouching.
+    return h >= 1.30f && h <= 1.70f;
+}
+
 static float bearingFromNorth(const bedrocktools::sdk::Vec3& from, const bedrocktools::sdk::Vec3& to) {
     constexpr float radToDeg = 57.29577951308232f;
     const float dx = to.x - from.x;
@@ -221,42 +231,93 @@ void LocatorHeadsModule::refreshPlayers(void* localPlayer) {
 
     auto level = *reinterpret_cast<void**>(reinterpret_cast<std::uintptr_t>(localPlayer) + bedrocktools::sdk::offsets::Actor::mLevel);
     if (!level) return;
-    auto actorManager = *reinterpret_cast<void**>(reinterpret_cast<std::uintptr_t>(level) + bedrocktools::sdk::offsets::Level::mActorManager);
+    auto actorManager = *reinterpret_cast<void**>(
+        reinterpret_cast<std::uintptr_t>(level) + bedrocktools::sdk::offsets::Level::mActorManager);
     if (!actorManager) return;
 
     const auto actors = s_getRuntimeActorList(actorManager);
-    std::vector<PlayerMarker> next;
-    next.reserve(actors.size());
-    std::unordered_set<void*> seen;
+    struct Candidate { void* actor; float distSq; };
+    std::vector<Candidate> candidates;
+    candidates.reserve(std::min<std::size_t>(actors.size(), 48));
+
+    const float maxDistSq = m_maxDistance * m_maxDistance;
 
     for (auto* actor : actors) {
-        if (!actor || actor == localPlayer || !seen.emplace(actor).second) continue;
+        if (!actor || actor == localPlayer) continue;
         if (!s_actorIsPlayer(actor)) continue;
 
         const auto* player = reinterpret_cast<const bedrocktools::sdk::Player*>(actor);
+        if (isCrouching(player)) continue;
+
         const auto pos = player->position();
-        if (distance3(localPos, pos) > m_maxDistance) continue;
+        const float dx = pos.x - localPos.x;
+        const float dy = pos.y - localPos.y;
+        const float dz = pos.z - localPos.z;
+        const float d2 = dx * dx + dy * dy + dz * dz;
+        if (d2 > maxDistSq) continue;
+
+        candidates.push_back({actor, d2});
+    }
+
+    // Bound work and memory. Keep only the nearest 32 visible candidates.
+    if (candidates.size() > 32) {
+        std::nth_element(candidates.begin(), candidates.begin() + 32, candidates.end(),
+            [](const Candidate& a, const Candidate& b) { return a.distSq < b.distSq; });
+        candidates.resize(32);
+    }
+    std::sort(candidates.begin(), candidates.end(),
+        [](const Candidate& a, const Candidate& b) { return a.distSq < b.distSq; });
+
+    std::vector<PlayerMarker> next;
+    next.reserve(candidates.size());
+
+    for (const auto& candidate : candidates) {
+        auto* actor = candidate.actor;
 
         std::string name;
-        if (s_actorGetNameTag) name = cleanPlayerName(s_actorGetNameTag(actor));
-        if (name.empty()) name = cleanPlayerName(player->name());
-        if (name.empty()) continue;
+        if (m_showNames && s_actorGetNameTag) {
+            name = cleanPlayerName(s_actorGetNameTag(actor));
+        }
+        if (m_showNames && name.empty()) {
+            name = cleanPlayerName(reinterpret_cast<const bedrocktools::sdk::Player*>(actor)->name());
+        }
 
-        auto imageKey = imageKeyForActor(actor);
-        HeadPixels head{};
-        if (extractHeadFromActor(actor, head)) {
+        std::string imageKey;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            auto it = m_imageCache.find(actor);
+            if (it != m_imageCache.end()) imageKey = it->second;
+        }
+
+        if (imageKey.empty()) {
+            HeadPixels head{};
+            if (!extractHeadFromActor(actor, head)) continue;
+            imageKey = imageKeyForActor(actor);
             pl::modmenu::registerImage(imageKey, head, HEAD_TEX_SIZE, HEAD_TEX_SIZE);
-        } else {
-            imageKey.clear();
+
+            std::lock_guard<std::mutex> lock(m_mutex);
+            m_imageCache[actor] = imageKey;
         }
 
         next.push_back({actor, std::move(name), std::move(imageKey)});
     }
 
-    std::lock_guard<std::mutex> lock(m_mutex);
-    m_players.swap(next);
-    m_localPlayer = localPlayer;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_players.swap(next);
+        m_localPlayer = localPlayer;
+
+        // Remove cache entries for actors no longer tracked.
+        std::unordered_set<void*> keep;
+        keep.reserve(m_players.size());
+        for (const auto& p : m_players) keep.insert(p.actor);
+        for (auto it = m_imageCache.begin(); it != m_imageCache.end(); ) {
+            if (!keep.count(it->first)) it = m_imageCache.erase(it);
+            else ++it;
+        }
+    }
 }
+
 
 void LocatorHeadsModule::onLocalPlayerTick(void* localPlayer) {
     if (!enabled || !localPlayer) return;
@@ -266,7 +327,7 @@ void LocatorHeadsModule::onLocalPlayerTick(void* localPlayer) {
         m_localYaw = reinterpret_cast<bedrocktools::sdk::Player*>(localPlayer)->rotation().y;
     }
 
-    if (++m_refreshTicks < 5) return;
+    if (++m_refreshTicks < 10) return;
     m_refreshTicks = 0;
     refreshPlayers(localPlayer);
 }

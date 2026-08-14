@@ -1,5 +1,4 @@
 #include "gameplaytime.hpp"
-#include "../ModuleRegistry.hpp"
 
 #include <bedrocktools/events/EventBus.hpp>
 #include <bedrocktools/events/Events.hpp>
@@ -154,18 +153,17 @@ std::string GameplayTimeModule::formatDuration(
         << ':'
         << std::setw(2) << minutes;
 
-    const bool showSecondsValue = g_gameplayTime ? g_gameplayTime->showSeconds : true;
-    if (showSecondsValue)
+    if (showSeconds)
         out << ':' << std::setw(2) << seconds;
 
     return out.str();
 }
 
 void GameplayTimeModule::onFrame() {
-    if (!enabled || !m_inSession)
+    if (!enabled)
         return;
 
-    const std::string timer = formatDuration(elapsed());
+    const std::string timer = m_inSession ? formatDuration(elapsed()) : formatDuration(std::chrono::steady_clock::duration::zero());
     const std::string text =
         showLabel ? ("Gameplay Time: " + timer) : timer;
 

@@ -5,6 +5,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 class LocatorHeadsModule : public Module {
 public:
@@ -28,7 +29,7 @@ public:
     float m_barHeight = 32.f;
     float m_markerSize = 20.f;
     float m_range = 60.f;          // half-angle in degrees; vanilla-style total FOV = 120°
-    float m_maxDistance = 256.f;
+    float m_maxDistance = 128.f;
     float m_opacity = 1.0f;
     float m_backgroundOpacity = 0.45f;
     bool m_showNames = false;
@@ -49,6 +50,7 @@ private:
     void* m_localPlayer = nullptr;
     float m_localYaw = 0.f;
     int m_refreshTicks = 20;
+    std::unordered_map<void*, std::string> m_imageCache;
 
     void refreshPlayers(void* localPlayer);
 };
