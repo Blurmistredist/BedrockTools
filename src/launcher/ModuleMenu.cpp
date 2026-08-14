@@ -171,8 +171,8 @@ void registerModulesWithLauncher() {
                     minVal = -300.0f;
                     maxVal = 300.0f;
                 } else if (kLower.find("distance") != std::string::npos) {
-                    minVal = 0.5f;
-                    maxVal = 12.0f;
+                    minVal = 1.0f;
+                    maxVal = 256.0f;
                 } else if (kLower.find("sideoffset") != std::string::npos ||
                            kLower.find("verticaloffset") != std::string::npos) {
                     minVal = -3.0f;
