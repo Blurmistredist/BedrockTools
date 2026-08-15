@@ -242,168 +242,173 @@ void FPSGraphModule::onFrame() {
 }
 
 void FPSGraphModule::drawGraph() {
-    constexpr float panelW = 540.0f;
-    constexpr float panelH = 560.0f;
-    const float scale = std::clamp(m_scale, 0.5f, 2.0f);
+    constexpr float panelW = 560.0f;
+    constexpr float panelH = 520.0f;
+
     const float x = m_posX;
     const float y = m_posY;
+    const float scale = std::clamp(m_scale, 0.5f, 2.0f);
     const float w = panelW * scale;
     const float h = panelH * scale;
+    const float left = x + 22.0f * scale;
+    const float right = x + w - 22.0f * scale;
+    const float valueX = x + w - 185.0f * scale;
+    const float unitX = x + w - 88.0f * scale;
 
     std::vector<PLModMenu_DrawCommand> cmds;
     std::vector<std::string> strings;
 
-    auto addText = [&](float tx, float ty, float size, uint32_t color, const std::string& text) {
-        PLModMenu_DrawCommand c{};
-        c.type = PL_DRAW_TEXT;
-        c.x = tx; c.y = ty; c.w = 0.f; c.h = 1.f;
-        c.size = size; c.color = color; c.text = text.c_str();
-        strings.push_back(text);
-        c.text = strings.back().c_str();
-        cmds.push_back(c);
+    addRect(cmds, x, y, w, h, 0xEE11171Du);
+    addRect(cmds, x + 3 * scale, y + 3 * scale,
+            w - 6 * scale, h - 6 * scale, 0xE9141B23u);
+
+    const float font = 29.0f * scale;
+    const float valueFont = 32.0f * scale;
+    const float unitFont = 22.0f * scale;
+    const float row = 43.0f * scale;
+
+    struct Metric {
+        const char* label;
+        std::string value;
+        const char* unit;
+        bool enabled;
+        std::uint32_t valueColor;
     };
 
-    auto addRect = [&](float rx, float ry, float rw, float rh, uint32_t color) {
-        PLModMenu_DrawCommand c{};
-        c.type = PL_DRAW_RECT_FILLED;
-        c.x = rx; c.y = ry; c.w = rw; c.h = rh; c.color = color;
-        cmds.push_back(c);
+    std::vector<Metric> top = {
+        {"FPS", std::to_string(static_cast<int>(std::round(m_fps))), "fps", m_showFps, 0xFF27E86Bu},
+        {"Avg", std::to_string(static_cast<int>(std::round(m_averageFps))), "fps", m_showAverage, 0xFF27E86Bu}
     };
 
-    auto addLine = [&](float lx, float ly, float lw, float lh, float thickness, uint32_t color) {
-        PLModMenu_DrawCommand c{};
-        c.type = PL_DRAW_LINE;
-        c.x = lx; c.y = ly; c.w = lw; c.h = lh;
-        c.size = thickness; c.color = color;
-        cmds.push_back(c);
-    };
+    float cy = y + 36.0f * scale;
+    for (const auto& metric : top) {
+        if (!metric.enabled) continue;
+        addText(cmds, strings, left, cy, font, 0xFFD9E3EEu, metric.label);
+        addText(cmds, strings, valueX, cy, valueFont, metric.valueColor, metric.value);
+        addText(cmds, strings, unitX, cy + 3.0f * scale, unitFont, 0xFFE2AA61u, metric.unit);
+        cy += row;
+    }
 
-    // Fixed layout: every metric has a dedicated column, and every row has
-    // fixed vertical spacing. Nothing shares a text column.
-    addRect(x, y, w, h, 0xEE10161Cu);
-    addRect(x + 3.f * scale, y + 3.f * scale, w - 6.f * scale, h - 6.f * scale, 0xE9161D25u);
-
-    const float left = x + 22.f * scale;
-    const float right = x + w - 22.f * scale;
-    const float labelCol = left;
-    const float valueCol = x + w - 170.f * scale;
-    const float unitCol = x + w - 78.f * scale;
-    const float titleSize = 17.f * scale;
-    const float labelSize = 24.f * scale;
-    const float valueSize = 28.f * scale;
-    const float unitSize = 16.f * scale;
-
-    addText(left, y + 12.f * scale, titleSize, 0xFFB7C5D5u, "FPS PERFORMANCE");
-
-    // Header metrics.
-    const float headerY = y + 42.f * scale;
-    addText(left, headerY, labelSize, 0xFFE7EEF6u, "FPS");
-    addText(x + 150.f * scale, headerY, 36.f * scale, 0xFF2BEA76u,
-            std::to_string(static_cast<int>(std::round(m_fps))));
-    addText(x + 285.f * scale, headerY, labelSize, 0xFFE7EEF6u, "AVG");
-    addText(x + 355.f * scale, headerY, 36.f * scale, 0xFF59C7FFu,
-            std::to_string(static_cast<int>(std::round(m_averageFps))));
-
-    // FPS history.
-    float graphY = y + 88.f * scale;
-    const float graphH = 92.f * scale;
-    addText(left, graphY - 18.f * scale, titleSize, 0xFF93A7BBu, "FPS HISTORY");
-    addRect(left, graphY, right - left, graphH, 0xFF102B37u);
-
-    const size_t nFps = std::min<size_t>(m_fpsHistory.size(), 120);
-    if (nFps) {
-        const float bw = (right - left) / static_cast<float>(nFps);
-        const float maxFps = std::max(120.f, m_averageFps * 1.4f);
-        for (size_t i = 0; i < nFps; ++i) {
-            const float v = std::clamp(m_fpsHistory[m_fpsHistory.size() - nFps + i] / maxFps, 0.f, 1.f);
-            addRect(left + i * bw,
-                    graphY + graphH * (1.f - v),
-                    std::max(1.f, bw - 1.f),
-                    graphH * v,
-                    0xFF27BFEA);
+    // Main FPS history: filled block bars, deliberately no polyline.
+    const float fpsBandY = cy + 5.0f * scale;
+    const float fpsBandH = 34.0f * scale;
+    addRect(cmds, left, fpsBandY, right - left, fpsBandH, 0xFF0E5B73u);
+    if (!m_fpsHistory.empty()) {
+        const size_t n = std::min<size_t>(m_fpsHistory.size(), 100);
+        const float bw = (right - left) / static_cast<float>(n);
+        const float graphMax = std::max(120.0f, m_averageFps * 1.5f);
+        for (size_t i = 0; i < n; ++i) {
+            const size_t idx = m_fpsHistory.size() - n + i;
+            const float normalized =
+                std::clamp(m_fpsHistory[idx] / graphMax, 0.0f, 1.0f);
+            addRect(cmds, left + i * bw,
+                    fpsBandY + fpsBandH * (1.0f - normalized),
+                    std::max(1.0f, bw - 1.0f),
+                    fpsBandH * normalized, 0xFF1CC5F0u);
         }
     }
+    cy = fpsBandY + fpsBandH;
 
-    float rowY = graphY + graphH + 18.f * scale;
+    // Jitter band.
+    cy += 10.0f * scale;
+    if (m_showJitter) {
+        addText(cmds, strings, left, cy, font, 0xFFD9E3EEu, "Jitter");
+        addText(cmds, strings, valueX, cy, valueFont, 0xFFB98BFFu,
+                std::to_string(static_cast<int>(std::round(m_jitterMs))));
+        addText(cmds, strings, unitX, cy + 3.0f * scale, unitFont, 0xFFE2AA61u, "ms");
 
-    // A stable two-column metric table.
-    addText(labelCol, rowY, titleSize, 0xFF93A7BBu, "CURRENT METRICS");
-    rowY += 24.f * scale;
+        const float gx = left;
+        const float gy = cy + 22.0f * scale;
+        const float gh = 34.0f * scale;
+        addRect(cmds, gx, gy, right - gx, gh, 0xFF4A3A69u);
 
-    const float col2 = x + w * 0.54f;
-    const float value2 = x + w - 170.f * scale;
-    const float unit2 = x + w - 78.f * scale;
-    const float metricRow = 36.f * scale;
-
-    auto metric = [&](float lx, float vx, float ux, float ly,
-                      const char* label, const std::string& value,
-                      const char* unit, uint32_t valueColor) {
-        addText(lx, ly, labelSize, 0xFFDCE6F0u, label);
-        addText(vx, ly, valueSize, valueColor, value);
-        addText(ux, ly + 4.f * scale, unitSize, 0xFFE3AA63u, unit);
-    };
-
-    if (m_showJitter || m_showRam) {
-        if (m_showJitter)
-            metric(labelCol, valueCol, unitCol, rowY, "Jitter",
-                   std::to_string(static_cast<int>(std::round(m_jitterMs))), "ms", 0xFFB98BFFu);
-        if (m_showRam)
-            metric(col2, value2, unit2, rowY, "RAM",
-                   std::to_string(static_cast<int>(std::round(m_ramMb))), "MB", 0xFF8ED6FFu);
-        rowY += metricRow;
-    }
-
-    if (m_showPing || m_showOnePercentLow) {
-        if (m_showPing)
-            metric(labelCol, valueCol, unitCol, rowY, "Ping",
-                   std::to_string(m_pingMs), "ms", 0xFFFFD05Cu);
-        if (m_showOnePercentLow)
-            metric(col2, value2, unit2, rowY, "1% Low",
-                   std::to_string(static_cast<int>(std::round(m_onePercentLow))), "fps", 0xFFFF9B73u);
-        rowY += metricRow;
-    }
-
-    if (m_showMspt || m_showTps) {
-        char msptBuf[32], tpsBuf[32];
-        std::snprintf(msptBuf, sizeof(msptBuf), "%.1f", m_mspt);
-        std::snprintf(tpsBuf, sizeof(tpsBuf), "%.1f", m_tps);
-        if (m_showMspt)
-            metric(labelCol, valueCol, unitCol, rowY, "MSPT", msptBuf, "ms", 0xFFE0A52Fu);
-        if (m_showTps)
-            metric(col2, value2, unit2, rowY, "TPS", tpsBuf, "tps", 0xFF5ED17Eu);
-        rowY += metricRow;
-    }
-
-    addLine(left, rowY + 4.f * scale, right - left, 1.f, 1.5f * scale, 0xFF425362u);
-    rowY += 18.f * scale;
-
-    // Tick-time graph.
-    if (m_showMspt) {
-        addText(left, rowY, titleSize, 0xFF93A7BBu, "MSPT HISTORY");
-        rowY += 18.f * scale;
-        const float mh = 54.f * scale;
-        addRect(left, rowY, right - left, mh, 0xFF3A2B16u);
-
-        const size_t n = std::min<size_t>(m_msptHistory.size(), 120);
-        if (n) {
-            const float bw = (right - left) / static_cast<float>(n);
+        if (!m_frameTimeHistory.empty()) {
+            // The purple area is a block/bar history, not a polyline.
+            const size_t n = std::min<size_t>(m_frameTimeHistory.size(), 100);
+            const float bw = (right - gx) / static_cast<float>(n);
             for (size_t i = 0; i < n; ++i) {
-                const float v = std::clamp(m_msptHistory[m_msptHistory.size() - n + i] / 50.f, 0.f, 1.f);
-                addRect(left + i * bw, rowY + mh * (1.f - v),
-                        std::max(1.f, bw - 1.f), mh * v, 0xFFE1A33A);
+                const size_t idx = m_frameTimeHistory.size() - n + i;
+                const float normalized =
+                    std::clamp(m_frameTimeHistory[idx] / 50.0f, 0.0f, 1.0f);
+                addRect(cmds, gx + i * bw, gy + gh * (1.0f - normalized),
+                        std::max(1.0f, bw - 1.0f), gh * normalized,
+                        0xFF8F65D8u);
             }
         }
-        rowY += mh + 12.f * scale;
+        cy += 78.0f * scale;
+    }
+
+    addLine(cmds, left, cy, right - left, 1.0f, 2.0f * scale, 0xFF53616Eu);
+    cy += 20.0f * scale;
+
+    const float metricsY = cy;
+    struct BottomMetric {
+        const char* label;
+        std::string value;
+        const char* unit;
+        bool enabled;
+    };
+
+    std::vector<BottomMetric> bottom = {
+        {"RAM", std::to_string(static_cast<int>(std::round(m_ramMb))), "mb", m_showRam},
+        {"Ping", std::to_string(m_pingMs), "ms", m_showPing},
+        {"1%Low", std::to_string(static_cast<int>(std::round(m_onePercentLow))), "fps", m_showOnePercentLow},
+        {"MSPT", ([&]{ char b[32]; std::snprintf(b, sizeof(b), "%.1f", m_mspt); return std::string(b); })(), "ms", m_showMspt},
+        {"TPS", ([&]{ char b[32]; std::snprintf(b, sizeof(b), "%.1f", m_tps); return std::string(b); })(), "tps", m_showTps}
+    };
+
+    float by = metricsY;
+    for (const auto& metric : bottom) {
+        if (!metric.enabled) continue;
+        addText(cmds, strings, left, by, font, 0xFFD9E3EEu, metric.label);
+        addText(cmds, strings, valueX, by, valueFont, 0xFF27E86Bu, metric.value);
+        addText(cmds, strings, unitX, by + 3.0f * scale, unitFont, 0xFFE2AA61u, metric.unit);
+        by += row;
+    }
+
+    // MSPT and TPS block histories are deliberately filled bars.
+    const float bandY = y + h - 72.0f * scale;
+    const float bandH = 20.0f * scale;
+    if (m_showMspt) {
+        addRect(cmds, left, bandY, right - left, bandH, 0xFF70501Du);
+        if (!m_msptHistory.empty()) {
+            const size_t n = std::min<size_t>(m_msptHistory.size(), 100);
+            const float bw = (right - left) / static_cast<float>(n);
+            for (size_t i = 0; i < n; ++i) {
+                const size_t idx = m_msptHistory.size() - n + i;
+                const float normalized =
+                    std::clamp(m_msptHistory[idx] / 50.0f, 0.0f, 1.0f);
+                addRect(cmds, left + i * bw, bandY + bandH * (1.0f - normalized),
+                        std::max(1.0f, bw - 1.0f), bandH * normalized,
+                        0xFFE0A52Fu);
+            }
+        }
+    }
+
+    if (m_showTps) {
+        const float ty = bandY - 26.0f * scale;
+        addRect(cmds, left, ty, right - left, 18.0f * scale, 0xFF315C3Eu);
+        if (!m_tpsHistory.empty()) {
+            const size_t n = std::min<size_t>(m_tpsHistory.size(), 100);
+            const float bw = (right - left) / static_cast<float>(n);
+            for (size_t i = 0; i < n; ++i) {
+                const size_t idx = m_tpsHistory.size() - n + i;
+                const float normalized =
+                    std::clamp(m_tpsHistory[idx] / 20.0f, 0.0f, 1.0f);
+                addRect(cmds, left + i * bw, ty + 18.0f * scale * (1.0f - normalized),
+                        std::max(1.0f, bw - 1.0f), 18.0f * scale * normalized,
+                        0xFF5ED17Eu);
+            }
+        }
     }
 
     if (m_superPerformanceModeThing) {
-        addText(left, y + h - 24.f * scale, 15.f * scale, 0xFFFFC45Bu,
-                "SUPER PERFORMANCE MODE THING");
+        addText(cmds, strings, left, y + h - 23.0f * scale,
+                17.0f * scale, 0xFFE2AA61u, "SUPER PERFORMANCE MODE THING");
     }
 
     submitDrawCommands(moduleId, cmds);
 }
-
 
 void FPSGraphModule::drawNumbersOnly() {
     constexpr float panelW = 440.0f;
@@ -461,7 +466,6 @@ void FPSGraphModule::loadConfig(const nlohmann::json& j) {
     m_posY = j.value("m_posY", m_posY);
     m_historySeconds = j.value("m_historySeconds", m_historySeconds);
     m_displayMode = j.value("m_displayMode", m_displayMode);
-    if (m_displayMode.empty()) m_displayMode = "Graph";
 
     m_showFps = j.value("m_showFps", m_showFps);
     m_showAverage = j.value("m_showAverage", m_showAverage);

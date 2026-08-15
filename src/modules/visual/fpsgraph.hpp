@@ -7,6 +7,9 @@
 
 class FPSGraphModule final : public Module {
 public:
+    bool isHudModule = true;
+    float hudPosX = 60.0f;
+    float hudPosY = 60.0f;
     FPSGraphModule();
     ~FPSGraphModule() override;
 
