@@ -108,7 +108,9 @@ const std::array<SignatureDefinition, SignatureCount> definitions{{
     SignatureDefinition{SignatureId::GuiDataDisplayTextObjectWhisperMessageObject, "? ? ? D1 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? 91 56 D0 3B D5 F5 03 00 AA E0 03 01 AA ? ? ? F9 F3 03 03 AA F4 03 02 AA ? ? ? F8 ? ? ? F9"},
     SignatureDefinition{SignatureId::GuiDataDisplayWhisperMessage, "? ? ? A9 ? ? ? F9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 FD 03 00 91 ? ? ? D1 5A D0 3B D5 F5 03 05 AA F4 03 04 AA"},
     SignatureDefinition{SignatureId::GuiDataAddMessage, "? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 FD 03 00 91 ? ? ? A9 F4 03 02 2A F3 03 00 AA 1F 01 09 EB"},
-}};
+    SignatureDefinition{SignatureId::ResourcePacksInfoPacketHandle, "48 00 40 F9 E0 03 02 AA 62 00 40 F9 03 75 40 F9 60 00 1F D6 ?? ?? ?? F0 08 81 1D 91 08 00 00 F9"},
+    SignatureDefinition{SignatureId::ResourcePackStackPacketHandle, "48 00 40 F9 E0 03 02 AA 62 00 40 F9 03 79 40 F9 60 00 1F D6 ?? ?? ?? D0 08 C1 1F 91 08 00 00 F9"},
+        }};
 }
 
 bool resolveAll(std::string_view libraryName) {
