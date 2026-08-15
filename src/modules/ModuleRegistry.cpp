@@ -15,7 +15,6 @@
 #include "hud/worldclock.hpp"
 #include "hud/gameplaytime.hpp"
 #include "hud/locatorheads.hpp"
-#include "visual/videosettings.hpp"
 #include "player/timechanger.hpp"
 #include "player/weatherchanger.hpp"
 #include "player/nick.hpp"
@@ -126,5 +125,4 @@ void registerAllModules() {
     registry.emplace<LightOverlayModule>();
     registry.emplace<ShulkerPreviewModule>();
     registry.emplace<ConnectedGlassModule>();
-    registry.emplace<VideoSettingsModule>();
 }
