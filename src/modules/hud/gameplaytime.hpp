@@ -28,7 +28,7 @@ public:
     float textSize = 40.0f;
     bool background = true;
     float backgroundOpacity = 0.55f;
-    bool showLabel = false;
+    bool showLabel = true;
     bool showSeconds = true;
 
 private:
@@ -39,5 +39,5 @@ private:
     int m_missingPlayerUpdates = 0;
 
     std::chrono::steady_clock::duration elapsed() const;
-    static std::string formatDuration(std::chrono::steady_clock::duration duration);
+    std::string formatDuration(std::chrono::steady_clock::duration duration) const;
 };
